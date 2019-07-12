@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aether-tests
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aether-tests
+  labels:
+    app: aether-tests
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aether-tests
+  template:
+    metadata:
+      labels:
+        app: aether-tests
+    spec:
+      containers:
+        - name: app
+          image: aether-tests:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /var/run/secrets/tokens
+              name: aether-token
+      serviceAccountName: aether-tests
+      volumes:
+        - name: aether-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: aether-token
+                  expirationSeconds: 7200
+                  audience: aether

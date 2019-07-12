@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: compute-aether
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: aether-tokenreview-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: compute-aether
+    namespace: default #TODO address this
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compute-aether
+  labels:
+    app: compute-aether
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compute-aether
+  template:
+    metadata:
+      labels:
+        app: compute-aether
+    spec:
+      containers:
+        - name: compute-aether
+          image: compute-aether:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+      serviceAccountName: compute-aether
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aether
+spec:
+  selector:
+    app: compute-aether
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
