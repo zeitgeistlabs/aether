@@ -8,4 +8,12 @@ ENV GOFLAGS="-mod=vendor"
 
 RUN go install -v ./...
 
-CMD ["container"]
+
+
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=0 /go/src/app .
+
+CMD ["./app"]
